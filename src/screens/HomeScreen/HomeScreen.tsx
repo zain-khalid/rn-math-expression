@@ -1,16 +1,34 @@
-import React from "react";
-import { ScrollView, View } from "react-native";
+import React, { useState } from "react";
+import { Button, ScrollView, TextInput, View } from "react-native";
 import { ExpressionText } from "../../components";
 import { dummyContent } from "../../constants/dummyContent";
 import styles from "./styles";
 
 const HomeScreen = () => {
+
+    const [text, setTest] = useState(dummyContent)
+    const [value, setValue] = useState(dummyContent)
+
     return(
-        <ScrollView style={{flex:1}} >
-            <View style={styles.container}>
-                <ExpressionText text={dummyContent} />
-            </View>
-        </ScrollView>
+        <View style={styles.container} >
+            <TextInput
+                value={value}
+                multiline={true}
+                numberOfLines={3}
+                style={styles.inputContainer}
+                placeholder={"Enter content to parse"}
+                onChangeText={(value)=>{setValue(value)}}
+            />
+            <Button 
+                title={"Parse content"}
+                onPress={()=>{setTest(value)}}
+            />
+            <ScrollView style={{flex:1}} >
+                <View>
+                    <ExpressionText text={text} />
+                </View>
+            </ScrollView>
+        </View>
     )
 }
 
