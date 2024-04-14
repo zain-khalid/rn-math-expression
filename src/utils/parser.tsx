@@ -10,7 +10,6 @@ const removeWhiteSpaceAtIndex = (inputString: String, index: number): String => 
 }
 
 const transformStringContent = (string: String): String => {
-    // string = string.replace(/\s+/g, ' ');
     string = cleanWhitespace(string);
     let result = string;
 
@@ -18,8 +17,6 @@ const transformStringContent = (string: String): String => {
         if(result.indexOf("\\[") === -1 && result.indexOf("\\]") === -1){
             break;
         } else {
-            console.log(result[result.indexOf("\\[")+2])
-            console.log(isWhitespaceAtIndex(result[result.indexOf("\\[")+2]))
             result = itterateWhiteSpaces(result, result.indexOf("\\[")+2, itterationDirection.forward)
             result = removeWhiteSpaceAtIndex(result, result.indexOf("\\[")+2);
             result = result.replace("\\[", "$");
@@ -28,7 +25,6 @@ const transformStringContent = (string: String): String => {
             result = result.replace("\\]", "$$");
         }
     }
-    console.log(result)
     
     return result.replace(/\$\$/g, '$');
 }

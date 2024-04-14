@@ -21,6 +21,19 @@ const styles = StyleSheet.create({
   span: { fontSize: 16 }
 });
 
+function convertStyle(css) {
+  const styleObj = {};
+  const properties = css.split(';');
+  properties.forEach(property => {
+    const [key, value] = property.split(':');
+    if (key && value) {
+      const formattedKey = key.trim().replace(/-(\w)/g, (match, p1) => p1.toUpperCase());
+      styleObj[formattedKey] = value.trim();
+    }
+  });
+  return styleObj;
+}
+
 function parseContent(content, parentStyle = {}) {
   const elements = [];
   let lastIdx = 0;
@@ -62,12 +75,20 @@ function parseHtml(html, parentStyle = {}) {
     const tagStart = match.index;
     const tagEnd = tagRegex.lastIndex;
     const tagName = match[1];
-    const attrs = match[2];
+    const attrs = match[2] || "";
     const content = match[3];
-
+    let inlineStyles = {};
+    
     if (tagStart > lastPos) {
       elements.push(...parseContent(html.substring(lastPos, tagStart), parentStyle));
     }
+
+    const styleMatch = attrs.match(/style="([^"]+)"/);
+    if (styleMatch) {
+      inlineStyles = convertStyle(styleMatch[1]);
+    }
+
+    const combinedStyles = {...parentStyle, ...inlineStyles};
 
     const key = `${tagName}-${lastPos}`;
     const childContent = parseHtml(content, parentStyle);
@@ -75,41 +96,41 @@ function parseHtml(html, parentStyle = {}) {
     switch (tagName.toLowerCase()) {
         case 'div':
         case 'section':
-          elements.push(<View key={key} style={styles.block}>{parseHtml(content)}</View>);
+          elements.push(<View key={key} style={[styles.block, combinedStyles]}>{parseHtml(content)}</View>);
           break;
         case 'p':
-          elements.push(<Text key={key} style={[styles.text, styles.paragraph]}>{parseHtml(content, styles.text)}</Text>);
+          elements.push(<Text key={key} style={[styles.text, styles.paragraph, combinedStyles]}>{parseHtml(content, styles.text)}</Text>);
           break;
         case 'b':
         case 'strong':
-          elements.push(<Text key={key} style={styles.bold}>{parseHtml(content, {...parentStyle, ...styles.bold})}</Text>);
+          elements.push(<Text key={key} style={[styles.bold, combinedStyles]}>{parseHtml(content, {...parentStyle, ...styles.bold})}</Text>);
           break;
         case 'i':
-          elements.push(<Text key={key} style={styles.italic}>{parseHtml(content, {...parentStyle, ...styles.italic})}</Text>);
+          elements.push(<Text key={key} style={[styles.italic, combinedStyles]}>{parseHtml(content, {...parentStyle, ...styles.italic})}</Text>);
           break;
         case 'u':
-          elements.push(<Text key={key} style={styles.underline}>{parseHtml(content, {...parentStyle, ...styles.underline})}</Text>);
+          elements.push(<Text key={key} style={[styles.underline, combinedStyles]}>{parseHtml(content, {...parentStyle, ...styles.underline})}</Text>);
           break;
         case 'small':
-          elements.push(<Text key={key} style={styles.small}>{parseHtml(content, {...parentStyle, ...styles.small})}</Text>);
+          elements.push(<Text key={key} style={[styles.small, combinedStyles]}>{parseHtml(content, {...parentStyle, ...styles.small})}</Text>);
           break;
         case 'span':
-          elements.push(<Text key={key} style={styles.span}>{parseHtml(content, styles.span)}</Text>);
+          elements.push(<Text key={key} style={[styles.span, combinedStyles]}>{parseHtml(content, styles.span)}</Text>);
           break;
         case 'label':
-          elements.push(<Text key={key} style={styles.label}>{parseHtml(content, styles.label)}</Text>);
+          elements.push(<Text key={key} style={[styles.label, combinedStyles]}>{parseHtml(content, styles.label)}</Text>);
           break;
         case 'ul':
-          elements.push(<View key={key} style={styles.list}>{parseHtml(content)}</View>);
+          elements.push(<View key={key} style={[styles.list, combinedStyles]}>{parseHtml(content)}</View>);
           break;
         case 'li':
-          elements.push(<Text key={key} style={styles.listItem}>{parseHtml(content, styles.listItem)}</Text>);
+          elements.push(<Text key={key} style={[styles.listItem, combinedStyles]}>{parseHtml(content, styles.listItem)}</Text>);
           break;
         case 'br':
-          elements.push(<Text key={key} style={{height: 20}}>{''}</Text>);
+          elements.push(<Text key={key} style={[{height: 20}, combinedStyles]}>{''}</Text>);
           break;
         case 'hr':
-          elements.push(<View key={key} style={styles.horizontalRule} />);
+          elements.push(<View key={key} style={[styles.horizontalRule, combinedStyles]} />);
           break;
         case 'h1':
         case 'h2':
@@ -117,10 +138,10 @@ function parseHtml(html, parentStyle = {}) {
         case 'h4':
         case 'h5':
         case 'h6':
-          elements.push(<Text key={key} style={[styles.heading, {fontSize: 30 - 4 * parseInt(tagName[1], 10)}]}>{parseHtml(content)}</Text>);
+          elements.push(<Text key={key} style={[styles.heading, {fontSize: 30 - 4 * parseInt(tagName[1], 10)}, combinedStyles]}>{parseHtml(content)}</Text>);
           break;
         case 'pre':
-          elements.push(<Text key={key} style={styles.preformatted}>{parseHtml(content, styles.preformatted)}</Text>);
+          elements.push(<Text key={key} style={[styles.preformatted, combinedStyles]}>{parseHtml(content, styles.preformatted)}</Text>);
           break;
       }
 
@@ -136,7 +157,7 @@ function parseHtml(html, parentStyle = {}) {
 
 const App = () => {
   const htmlContent = `
-    <p><b>The square root of</b> $x^2 + 25", "$$ in the denominator and the $x^2 + 25$$", " in the numerator essentially cancel out</p>
+    <p style="color: blue;"><b>The square root of</b> $x^2 + 25", "$$ in the denominator and the $x^2 + 25$$", " in the numerator essentially cancel out</p>
     <p>When we look at the first part of the expression, $\\int \\frac{x^2 + 25}{\\sqrt{x^2 + 25}} dx$$, we notice that the numerator is essentially the same as what's inside the square root in the denominator, just without the square root. This means we can simplify this part of the integral significantly.
 
     The square root of $x^2 + 25", "$$ in the denominator and the $x^2 + 25$$", " in the numerator essentially cancel out, leaving us with:
