@@ -8,7 +8,7 @@ interface ExpressionTextProps {
   
 const ExpressionText: React.FC<ExpressionTextProps> = ({ text }) => {
     return (
-        <MathText value={transformStringContent(text)} />
+        <MathText value={transformStringContent(text)} ></MathText>
     );
 };
 
