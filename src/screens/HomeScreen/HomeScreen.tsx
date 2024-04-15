@@ -3,6 +3,7 @@ import { Button, ScrollView, TextInput, View } from "react-native";
 import { ExpressionText } from "../../components";
 import { dummyContent } from "../../constants/dummyContent";
 import styles from "./styles";
+import { parseHtml, transformStringContent } from "../../utils/parser";
 
 const HomeScreen = () => {
 
@@ -25,7 +26,7 @@ const HomeScreen = () => {
             />
             <ScrollView style={{flex:1}} >
                 <View>
-                    <ExpressionText text={text} />
+                    {parseHtml(transformStringContent(text))}
                 </View>
             </ScrollView>
         </View>
